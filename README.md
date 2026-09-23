@@ -1,11 +1,87 @@
 # Ender 3 + Klipper + BTT SKR Mini E3 V3.0
 
-Praktický návod pro zprovoznění a nastavení **Creality Ender 3** s deskou **BTT SKR Mini E3 V3.0** a firmwarem **Klipper**.
+Praktický český návod pro zprovoznění a nastavení **Creality Ender 3** s deskou **BTT SKR Mini E3 V3.0** a firmwarem **Klipper**.
 
-Tento projekt vychází z reálně provozované a upravené tiskárny. Cílem není nabídnout jeden „zázračný“ `printer.cfg`, který stačí slepě zkopírovat, ale ukázat postup tak, aby i začátečník věděl **co nastavuje, proč to nastavuje a co musí přizpůsobit své tiskárně**.
+Projekt vychází z reálně provozované a upravené tiskárny. Cílem není nabídnout jeden „zázračný“ `printer.cfg`, který stačí slepě zkopírovat, ale ukázat postup tak, aby i začátečník věděl **co nastavuje, proč to nastavuje a co musí přizpůsobit své tiskárně**.
 
 > [!WARNING]
-> Konfigurace není univerzální pro každý Ender 3. Hodnoty jako MCU ID, Z-offset, PID, rotation distance, sensorless homing citlivost, Pressure Advance nebo Input Shaper musíš nastavit pro svůj konkrétní stroj.
+> Konfigurace není univerzální pro každý Ender 3. MCU ID, Z-offset, PID, rotation distance, sensorless homing, Pressure Advance, Input Shaper a další hodnoty musí odpovídat konkrétnímu stroji.
+
+## 🚀 Kde začít
+
+Pokud s Klipperem začínáš, **nezačínej kopírováním celého configu a náhodným zkoušením příkazů**.
+
+Doporučená cesta je:
+
+1. projít instalaci níže v tomto README,
+2. otevřít `config/printer.cfg`,
+3. pokračovat návody v `guides/` **od 01 postupně dál**,
+4. volitelné funkce z `optional/` řešit až ve chvíli, kdy základ tiskárny spolehlivě funguje.
+
+### 📚 Podrobné návody a vysvětlivky
+
+README je hlavně **rozcestník a instalační základ**. Podrobnější vysvětlení, bezpečné testovací postupy, příkazy a důvody jednotlivých nastavení jsou v samostatných kapitolách:
+
+| Krok | Návod | Co řeší |
+|---|---|---|
+| 01 | [První spuštění](guides/01-first-start.md) | MCU, teploty, endstopy, BLTouch, motory a první bezpečné kontroly |
+| 02 | [Sensorless homing](guides/02-sensorless-homing.md) | StallGuard, `driver_sgthrs`, bezpečné ladění X/Y |
+| 03 | [BLTouch](guides/03-bltouch.md) | kontrola sondy a bezpečný první Z-home |
+| 04 | [PID tuning](guides/04-pid-tuning.md) | kontrola topení a PID hotendu i bedu |
+| 05 | [Kalibrace extruderu](guides/05-extruder-calibration.md) | `rotation_distance`, `gear_ratio`, význam `!`, `^` a komentářů `#` |
+| 06 | [Z-offset](guides/06-z-offset.md) | `PROBE_CALIBRATE`, papírek, `TESTZ`, `SAVE_CONFIG` |
+| 07 | [Bed Mesh](guides/07-bed-mesh.md) | měřicí oblast, offset sondy, bezpečné hranice meshe |
+| 08 | [Pressure Advance](guides/08-pressure-advance.md) | princip PA a vlastní kalibrace |
+| 09 | [Input Shaper + ADXL345](guides/09-input-shaper-adxl345.md) | rezonance, X na toolheadu, Y na bedu |
+| 10 | [KAMP](guides/10-kamp.md) | adaptivní mesh a purge jako volitelné rozšíření |
+| 11 | [PRINT_START / PRINT_END](guides/11-print-start-end.md) | startovací a ukončovací makra krok za krokem |
+| 12 | [První tisk a rychlost](guides/12-first-print-speed.md) | první testovací tisk, rychlost, akcelerace a objemový průtok |
+
+> [!TIP]
+> Když v `printer.cfg` narazíš na parametr, kterému nerozumíš, nejdřív se podívej do odpovídající kapitoly v `guides/`. Config obsahuje stručné české komentáře, zatímco návody vysvětlují věci podrobněji a v souvislostech.
+
+## 🗂️ Co je kde
+
+```text
+Ender3-Klipper-Guide/
+├── README.md
+├── config/
+│   ├── printer.cfg
+│   └── macros.cfg
+├── guides/
+│   ├── 01-first-start.md
+│   ├── 02-sensorless-homing.md
+│   ├── 03-bltouch.md
+│   ├── 04-pid-tuning.md
+│   ├── 05-extruder-calibration.md
+│   ├── 06-z-offset.md
+│   ├── 07-bed-mesh.md
+│   ├── 08-pressure-advance.md
+│   ├── 09-input-shaper-adxl345.md
+│   ├── 10-kamp.md
+│   ├── 11-print-start-end.md
+│   └── 12-first-print-speed.md
+└── optional/
+    ├── adxl345.cfg
+    ├── input_shaper.cfg
+    └── kamp.cfg
+```
+
+### `config/printer.cfg`
+
+Základní konfigurace tiskárny. Je opatřená českými komentáři přímo u důležitých funkcí a hodnot.
+
+### `config/macros.cfg`
+
+Volitelná jednoduchá makra, například zavedení/vytažení filamentu, parkování hlavy a předehřev. Uvnitř jsou české vysvětlivky.
+
+### `guides/`
+
+**Tady hledej podrobnější návod.** Kapitoly nejsou jen seznam příkazů – vysvětlují také proč se daný test dělá, co máš očekávat a kdy raději nepokračovat.
+
+### `optional/`
+
+Doplňky, které pro první zprovoznění nepotřebuješ: ADXL345, Input Shaper a KAMP. Přidávej je až na funkční a zkalibrovaný základ.
 
 ## 🎥 Jak může tiskárna fungovat po úpravách
 
@@ -13,7 +89,7 @@ Sem bude doplněno video z mého YouTube s ukázkou reálného provozu upravené
 
 **▶️ TODO: vložit odkaz na ukázkové video**
 
-> Klipper sám o sobě automaticky neudělá z Enderu rychlou tiskárnu. Výsledná rychlost a kvalita závisí také na mechanickém stavu tiskárny, použitých komponentech a správné kalibraci.
+> Klipper sám automaticky neudělá z Enderu rychlou tiskárnu. Výsledná rychlost a kvalita závisí také na mechanickém stavu, použitých komponentech, hotendu, chlazení a správné kalibraci.
 
 ## 🔧 Hardware, ze kterého projekt vychází
 
@@ -30,25 +106,6 @@ Sem bude doplněno video z mého YouTube s ukázkou reálného provozu upravené
 - volitelně KAMP
 
 Pokud máš jiný extruder, sondu, termistor nebo jinou mechanickou úpravu, **nekopíruj odpovídající hodnoty bez kontroly**.
-
-## 🧭 Doporučený postup
-
-1. Připravit Raspberry Pi.
-2. Nainstalovat Klipper, Moonraker a Mainsail.
-3. Vytvořit firmware pro SKR Mini E3 V3.0.
-4. Flashnout řídicí desku.
-5. Zjistit správné MCU ID.
-6. Naklonovat tento repozitář.
-7. Připravit základní `printer.cfg`.
-8. Ověřit endstopy, směry motorů a homing.
-9. Ověřit BLTouch.
-10. Ověřit teplotní senzory a topení.
-11. Kalibrovat extruder.
-12. PID tuning.
-13. Z-offset a bed mesh.
-14. Pressure Advance.
-15. Input Shaper.
-16. Teprve potom přidat další funkce, například KAMP.
 
 ---
 
@@ -138,9 +195,9 @@ serial: /dev/serial/by-id/usb-Klipper_stm32g0b1xx_XXXXXXXXXXXXXXXX-if00
 
 ---
 
-# 4. Stažení tohoto projektu
+# 4. Stažení projektu
 
-Nemusíš stahovat ZIP, rozbalovat ho na počítači a ručně kopírovat soubory.
+Nemusíš stahovat ZIP, rozbalovat ho na počítači a potom ručně přenášet soubory.
 
 ```bash
 cd ~
@@ -149,12 +206,16 @@ cd Ender3-Klipper-Guide
 ls
 ```
 
-## Co dělá git clone?
+### Co dělá `git clone`?
 
-`git clone` vytvoří v aktuálním adresáři kopii projektu včetně jeho Git historie. Později tak lze změny z GitHubu jednoduše stáhnout pomocí Gitu místo opakovaného stahování ZIP archivů.
+`git clone` vytvoří v aktuálním adresáři místní kopii projektu včetně Git historie. Pozdější změny z GitHubu lze díky tomu stahovat Gitem místo opakovaného stahování ZIP archivů.
 
 > [!IMPORTANT]
-> Po naklonování projektu zatím slepě nekopíruj konfiguraci do `printer_data/config`. Nejprve projdi návod a uprav hodnoty pro svoji tiskárnu.
+> Po naklonování projektu zatím slepě nekopíruj konfiguraci do `printer_data/config`. Nejdřív projdi návod a uprav hodnoty pro svoji tiskárnu.
+
+Podrobný postup prvního spuštění pokračuje zde:
+
+**➡️ [01 – První spuštění](guides/01-first-start.md)**
 
 ---
 
@@ -177,43 +238,22 @@ ls
 
 ---
 
-# 6. Konfigurace projektu
-
-V adresáři `config/` bude základní konfigurace potřebná pro první zprovoznění tiskárny.
-
-Pokročilé části budou oddělené:
-
-```text
-optional/
-├── adxl345.cfg
-├── input_shaper.cfg
-└── kamp.cfg
-```
-
-Začátečník tedy nebude potřebovat ADXL345 ani KAMP jen proto, aby mohl poprvé připojit tiskárnu ke Klipperu.
-
----
-
-# 7. Doporučené pořadí kontroly a kalibrace
+# 6. Doporučené pořadí kontroly
 
 ```text
 MCU
  ↓
-endstopy
- ↓
-motory
+endstopy a motory
  ↓
 sensorless homing
  ↓
 BLTouch
  ↓
-teplotní senzory
+teplotní senzory a topení
  ↓
-hotend + bed
+PID
  ↓
 extruder
- ↓
-PID tuning
  ↓
 Z-offset
  ↓
@@ -224,6 +264,8 @@ Pressure Advance
 Input Shaper
  ↓
 KAMP
+ ↓
+první bezpečné zvyšování rychlosti
 ```
 
 Nesnaž se řešit deset problémů současně. Pokud ještě nefunguje správně homing, nemá smysl řešit KAMP.
@@ -238,11 +280,7 @@ Před zapnutím topení ověř, že Klipper zobrazuje rozumnou teplotu hotendu i
 
 Před prvním homingem ověř směry pohybu, funkci endstopů nebo sensorless homingu, funkci BLTouch a že mechanika může bezpečně projet požadovaný rozsah.
 
----
-
-# 📚 Připravované návody
-
-Postupně budou doplněny návody pro první spuštění, sensorless homing, BLTouch, kalibraci extruderu, PID tuning, Z-offset, Pressure Advance, Input Shaper, ADXL345 a KAMP.
+Pokud se při prvním testu osa, sonda nebo topení chová jinak, než očekáváš, test přeruš a nejdřív zjisti proč.
 
 ---
 
