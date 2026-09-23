@@ -13,10 +13,11 @@ Pokud s Klipperem začínáš, **nezačínej kopírováním celého configu a n�
 
 Doporučená cesta je:
 
-1. projít instalaci níže v tomto README,
-2. otevřít `config/printer.cfg`,
-3. pokračovat návody v `guides/` **od 01 postupně dál**,
-4. volitelné funkce z `optional/` řešit až ve chvíli, kdy základ tiskárny spolehlivě funguje.
+1. připravit Raspberry Pi a nainstalovat Klipper/Moonraker/Mainsail,
+2. vytvořit a nahrát firmware do SKR Mini E3 V3.0,
+3. otevřít `config/printer.cfg`,
+4. pokračovat návody v `guides/` **od 01 postupně dál**,
+5. volitelné funkce z `optional/` řešit až ve chvíli, kdy základ tiskárny spolehlivě funguje.
 
 ### 📚 Podrobné návody a vysvětlivky
 
@@ -68,20 +69,16 @@ Ender3-Klipper-Guide/
 ```
 
 ### `config/printer.cfg`
-
-Základní konfigurace tiskárny. Je opatřená českými komentáři přímo u důležitých funkcí a hodnot.
+Základní konfigurace tiskárny s českými komentáři přímo u důležitých funkcí a hodnot.
 
 ### `config/macros.cfg`
-
-Volitelná jednoduchá makra, například zavedení/vytažení filamentu, parkování hlavy a předehřev. Uvnitř jsou české vysvětlivky.
+Volitelná jednoduchá makra, například zavedení/vytažení filamentu, parkování hlavy a předehřev.
 
 ### `guides/`
-
-**Tady hledej podrobnější návod.** Kapitoly nejsou jen seznam příkazů – vysvětlují také proč se daný test dělá, co máš očekávat a kdy raději nepokračovat.
+**Tady hledej podrobnější návod.** Kapitoly vysvětlují nejen příkazy, ale také proč se daný test dělá, co očekávat a kdy raději nepokračovat.
 
 ### `optional/`
-
-Doplňky, které pro první zprovoznění nepotřebuješ: ADXL345, Input Shaper a KAMP. Přidávej je až na funkční a zkalibrovaný základ.
+ADXL345, Input Shaper a KAMP. Přidávej až na funkční a zkalibrovaný základ.
 
 ## 🎥 Jak může tiskárna fungovat po úpravách
 
@@ -109,9 +106,18 @@ Pokud máš jiný extruder, sondu, termistor nebo jinou mechanickou úpravu, **n
 
 ---
 
-# 1. Raspberry Pi
+# 1. Raspberry Pi a instalace Klipperu
 
-Nejjednodušší cesta pro začátečníka je použít **MainsailOS**.
+Pro úplného začátečníka doporučuji **MainsailOS**. Je to připravený systém pro Raspberry Pi, který už obsahuje základní Klipper stack.
+
+Užitečné odkazy:
+
+- [MainsailOS – GitHub](https://github.com/mainsail-crew/MainsailOS)
+- [Mainsail dokumentace](https://docs.mainsail.xyz/)
+- [Klipper dokumentace](https://www.klipper3d.org/)
+- [Moonraker dokumentace](https://moonraker.readthedocs.io/)
+- [KIAUH – GitHub](https://github.com/dw-0/kiauh)
+- [Raspberry Pi Imager](https://www.raspberrypi.com/software/)
 
 Pomocí Raspberry Pi Imager připrav SD kartu a při instalaci nastav hostname, Wi-Fi, uživatelské jméno, heslo a SSH.
 
@@ -129,18 +135,35 @@ ssh pi@mainsailos.local
 
 `pi` nahraď uživatelským jménem, které jsi nastavil při instalaci.
 
+## Alternativa: instalace přes KIAUH
+
+Pokud nepoužíváš hotový MainsailOS nebo chceš později snadno instalovat další části Klipper prostředí, velmi užitečný je **KIAUH – Klipper Installation And Update Helper**.
+
+```bash
+cd ~
+sudo apt-get update
+sudo apt-get install git -y
+git clone https://github.com/dw-0/kiauh.git
+./kiauh/kiauh.sh
+```
+
+V menu KIAUH potom můžeš instalovat a spravovat například Klipper, Moonraker a webové rozhraní Mainsail.
+
+> [!TIP]
+> Pro první tiskárnu není nutné kombinovat všechny možné instalační metody. Pokud použiješ MainsailOS a vše potřebné už funguje, není důvod Klipper znovu přeinstalovávat přes KIAUH.
+
 ---
 
 # 2. Firmware pro BTT SKR Mini E3 V3.0
 
-Připoj se přes SSH:
+Připoj se k Raspberry Pi přes SSH:
 
 ```bash
 cd ~/klipper
 make menuconfig
 ```
 
-Pro SKR Mini E3 V3.0 použij:
+Pro **SKR Mini E3 V3.0** nastav:
 
 ```text
 Micro-controller Architecture: STMicroelectronics STM32
@@ -149,53 +172,136 @@ Bootloader offset: 8KiB bootloader
 Communication interface: USB
 ```
 
-Potom:
+Po nastavení menu ukonči a konfiguraci ulož. Potom spusť:
 
 ```bash
 make
 ```
 
-Výsledný soubor:
+Pokud kompilace proběhne úspěšně, Klipper vytvoří firmware zde:
 
 ```text
 ~/klipper/out/klipper.bin
 ```
 
+tedy typicky:
+
+```text
+/home/TVUJ_UZIVATEL/klipper/out/klipper.bin
+```
+
+Můžeš si existenci souboru ověřit i přes SSH:
+
+```bash
+ls -lh ~/klipper/out/klipper.bin
+```
+
+## 🪟 Stažení klipper.bin do Windows pomocí WinSCP
+
+Tohle je krok, na kterém může začátečník snadno tápat: příkaz `make` vytvořil firmware **na Raspberry Pi**, ne ve Windows.
+
+Pro pohodlné nalezení a stažení souboru můžeš použít **WinSCP**:
+
+- [WinSCP – oficiální stažení](https://winscp.net/eng/download.php)
+
+Ve WinSCP vytvoř připojení:
+
+```text
+File protocol: SFTP
+Host name: IP adresa Raspberry Pi
+User name: stejné uživatelské jméno jako pro SSH
+Password: tvoje heslo k Raspberry Pi
+```
+
+Po připojení otevři na Raspberry Pi:
+
+```text
+/home/TVUJ_UZIVATEL/klipper/out/
+```
+
+nebo jednoduše ve svém domovském adresáři:
+
+```text
+klipper → out
+```
+
+Uvnitř najdeš:
+
+```text
+klipper.bin
+```
+
+Přetáhni `klipper.bin` z Raspberry Pi například na plochu Windows.
+
+> [!IMPORTANT]
+> **Soubor se pro SKR Mini E3 V3.0 musí před vložením na microSD kartu jmenovat přesně `firmware.bin`.**
+>
+> Takže:
+>
+> `klipper.bin` → **`firmware.bin`**
+>
+> Nestačí ho pouze zkopírovat na kartu pod původním názvem.
+
+### Pozor na skryté přípony ve Windows
+
+Pokud Windows skrývá přípony známých souborů, dej pozor, aby výsledkem nebylo například:
+
+```text
+firmware.bin.bin
+```
+
+V Průzkumníku Windows je proto vhodné zapnout zobrazení **přípon názvů souborů**.
+
 ## Flash desky
 
-1. Zkopíruj `klipper.bin` na microSD kartu.
-2. Přejmenuj jej na `firmware.bin`.
-3. Vlož kartu do SKR Mini E3 V3.0.
-4. Vypni a znovu zapni tiskárnu.
+1. Vytvoř pomocí `make` soubor `klipper.bin`.
+2. Stáhni ho z `~/klipper/out/` do PC – například pomocí WinSCP.
+3. Přejmenuj **`klipper.bin` na `firmware.bin`**.
+4. Zkopíruj `firmware.bin` do kořenového adresáře microSD karty.
+5. Vypni tiskárnu.
+6. Vlož microSD kartu do SKR Mini E3 V3.0.
+7. Zapni tiskárnu.
+8. Po několika sekundách desku znovu vypni a kartu zkontroluj.
 
-Po úspěšném flashnutí deska obvykle přejmenuje soubor na `FIRMWARE.CUR`.
+Po úspěšném flashnutí bootloader obvykle přejmenuje soubor na:
+
+```text
+FIRMWARE.CUR
+```
+
+To je dobrý první signál, že deska firmware zpracovala.
+
+> [!NOTE]
+> Pro tuto desku se firmware běžně nahrává přes microSD. Nespoléhej zde na `make flash`.
 
 ---
 
 # 3. Zjištění MCU ID
 
-**Nekopíruj MCU ID z cizího printer.cfg.**
+Po připojení desky k Raspberry Pi přes USB spusť:
 
 ```bash
 ls /dev/serial/by-id/*
 ```
 
-Výsledek může vypadat například:
+Pokud firmware a USB komunikace fungují, měl by se objevit Klipper MCU, například:
 
 ```text
 /dev/serial/by-id/usb-Klipper_stm32g0b1xx_XXXXXXXXXXXXXXXX-if00
 ```
 
-Použiješ jej v:
+Celou svoji cestu vlož do `printer.cfg`:
 
 ```ini
 [mcu]
 serial: /dev/serial/by-id/usb-Klipper_stm32g0b1xx_XXXXXXXXXXXXXXXX-if00
 ```
 
+**Nekopíruj MCU ID z cizího printer.cfg. Každá deska má svoje.**
+
 ---
 
-# 4. Stažení projektu
+# 4. Stažení tohoto projektu
 
 Nemusíš stahovat ZIP, rozbalovat ho na počítači a potom ručně přenášet soubory.
 
@@ -269,6 +375,20 @@ první bezpečné zvyšování rychlosti
 ```
 
 Nesnaž se řešit deset problémů současně. Pokud ještě nefunguje správně homing, nemá smysl řešit KAMP.
+
+---
+
+# 🔗 Užitečné odkazy
+
+- [Klipper – dokumentace](https://www.klipper3d.org/)
+- [Klipper – GitHub](https://github.com/Klipper3d/klipper)
+- [Mainsail – dokumentace](https://docs.mainsail.xyz/)
+- [MainsailOS – GitHub](https://github.com/mainsail-crew/MainsailOS)
+- [Moonraker – dokumentace](https://moonraker.readthedocs.io/)
+- [KIAUH – GitHub](https://github.com/dw-0/kiauh)
+- [BIGTREETECH SKR Mini E3 – GitHub](https://github.com/bigtreetech/BIGTREETECH-SKR-mini-E3)
+- [WinSCP – oficiální web](https://winscp.net/)
+- [Raspberry Pi Imager](https://www.raspberrypi.com/software/)
 
 ---
 
