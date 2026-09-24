@@ -11,9 +11,7 @@ Teď ověříme BLTouch a teprve potom dovolíme trysce přiblížit se k podlo�
 
 Existuje několik hardwarových revizí originálního BLTouch a také CR Touch a různé kompatibilní sondy/klony.
 
-Podle konkrétní sondy, její revize a způsobu zapojení může být potřeba trochu jiné nastavení.
-
-Proto **nekopíruj celý `[bltouch]` blok jen proto, že někomu jinému funguje na Enderu 3**.
+Podle konkrétní sondy, její revize a způsobu zapojení může být potřeba trochu jiné nastavení. Proto **nekopíruj celý `[bltouch]` blok jen proto, že někomu jinému funguje na Enderu 3**.
 
 V našem základním configu používáme:
 
@@ -30,23 +28,74 @@ pin_up_touch_mode_reports_triggered: False
 stow_on_each_sample: False
 ```
 
-Toto nastavení vychází z konkrétní tiskárny, ze které vznikl tento projekt.
+Parametry `probe_with_touch_mode`, `pin_up_touch_mode_reports_triggered` a `stow_on_each_sample` nemusí být vhodné pro každou sondu.
 
-Parametry jako:
+## 2. Nejdřív správně namontuj sondu
 
-```ini
-probe_with_touch_mode
-pin_up_touch_mode_reports_triggered
-stow_on_each_sample
+Než začneš řešit config, ověř mechanickou výšku BLTouch.
+
+Při **zasunutém pinu** má být špička pinu bezpečně výš než špička trysky, aby při tisku nezachytávala o výtisk. Oficiální dokumentace Klipperu uvádí jako první kontrolu přibližně **2 mm nad tryskou**.
+
+Při **vysunutém pinu** naopak musí být pin níž než tryska, aby při Z-home sepnul dříve, než tryska narazí do podložky.
+
+> [!IMPORTANT]
+> Pokud je sonda mechanicky příliš vysoko, tryska může narazit do bedu dříve, než BLTouch sepne. Pokud je příliš nízko, zasunutý pin může zachytávat o výtisk.
+
+## 3. Nastav správný X/Y offset sondy vůči trysce
+
+`x_offset` a `y_offset` říkají Klipperu, **kde se sonda fyzicky nachází vůči trysce**. Změříš je pravítkem nebo lépe posuvným měřítkem od středu trysky ke středu pinu sondy.
+
+Při běžné orientaci tiskárny, když stojíš před ní:
+
+```text
+                 ZADNÍ ČÁST TISKÁRNY
+                         +Y
+                          ↑
+
+             -X   ←   TRYSKA   →   +X
+
+                          ↓
+                         -Y
+                 PŘEDNÍ ČÁST TISKÁRNY
 ```
 
-nemusí být vhodné pro každou sondu.
+Tedy:
 
-Také `x_offset` a `y_offset` závisejí na držáku sondy a musí odpovídat skutečné poloze BLTouch vůči trysce.
+- sonda **vpravo od trysky** → kladné `x_offset`,
+- sonda **vlevo od trysky** → záporné `x_offset`,
+- sonda **za tryskou** → kladné `y_offset`,
+- sonda **před tryskou** → záporné `y_offset`.
 
-## 2. Nejdřív otestuj samotný pin
+Příklad:
 
-Tiskárna zatím nemusí nikam jezdit.
+```ini
+[bltouch]
+x_offset: 30
+y_offset: 2
+```
+
+znamená, že sonda je přibližně **30 mm vpravo a 2 mm za tryskou**.
+
+Tohle je stejný geometrický princip, který Marlin popisuje jako `NOZZLE_TO_PROBE_OFFSET`. Hodnoty ale vždy změř na své vlastní tiskárně a zapiš je syntaxí Klipperu.
+
+### Přesnější metoda podle Klipperu
+
+Pokud nechceš spoléhat jen na měření posuvkou, můžeš offset ověřit přímo na bedu:
+
+1. Zahomuj tiskárnu a přesuň hlavu přibližně doprostřed.
+2. Dej na bed kousek papírové pásky.
+3. Proveď `PROBE` a označ místo přímo pod středem pinu sondy.
+4. Pomocí `GET_POSITION` si poznamenej XY polohu.
+5. Přesuň hlavu tak, aby byla **tryska přesně nad stejnou značkou**.
+6. Znovu použij `GET_POSITION`.
+7. Rozdíl poloh použij jako X/Y offset podle postupu v oficiální dokumentaci Klipperu.
+
+Po změně `x_offset` nebo `y_offset` znovu zkontroluj také `safe_z_home` a hranice `bed_mesh`, protože Klipper musí při měření udržet **sondu**, ne pouze trysku, nad podložkou.
+
+> [!NOTE]
+> X/Y offset není totéž co Z-offset. X/Y popisuje polohu sondy vedle trysky. Z-offset se kalibruje později pomocí `PROBE_CALIBRATE`.
+
+## 4. Otestuj samotný pin
 
 Do konzole Mainsailu napiš:
 
@@ -54,21 +103,15 @@ Do konzole Mainsailu napiš:
 BLTOUCH_DEBUG COMMAND=pin_down
 ```
 
-Pin sondy se musí vysunout.
-
-Potom:
+Pin sondy se musí vysunout. Potom:
 
 ```text
 BLTOUCH_DEBUG COMMAND=pin_up
 ```
 
-Pin se musí zasunout.
+Pin se musí zasunout. Zopakuj test několikrát. Pokud pin nereaguje správně, **nepokračuj k homingu Z**.
 
-Zopakuj tento test několikrát.
-
-Pokud pin nereaguje správně, **nepokračuj k homingu Z**.
-
-## 3. Ověř, že Klipper pozná sepnutí sondy
+## 5. Ověř, že Klipper pozná sepnutí sondy
 
 Vysuň pin:
 
@@ -82,15 +125,7 @@ Potom:
 QUERY_PROBE
 ```
 
-Klipper musí hlásit stav odpovídající nesepnuté sondě.
-
-Teď pin BLTouch **jemně ručně zatlač prstem nahoru** a znovu použij:
-
-```text
-QUERY_PROBE
-```
-
-Stav se musí změnit.
+Klipper musí hlásit stav odpovídající nesepnuté sondě. Teď pin BLTouch **velmi jemně** zatlač nahoru a znovu použij `QUERY_PROBE`. Stav se musí změnit.
 
 Nakonec:
 
@@ -101,7 +136,7 @@ BLTOUCH_DEBUG COMMAND=pin_up
 > [!IMPORTANT]
 > Samotné vysouvání a zasouvání pinu ještě nestačí. Musíme ověřit i to, že Klipper elektricky pozná jeho sepnutí.
 
-## 4. Pro první Z-home používáme pouze 2 mm/s
+## 6. Pro první Z-home používáme pouze 2 mm/s
 
 V základním `printer.cfg` je záměrně:
 
@@ -110,97 +145,49 @@ V základním `printer.cfg` je záměrně:
 homing_speed: 2
 ```
 
-Tohle **není doporučená finální rychlost**.
+Tohle **není doporučená finální rychlost**. Je to bezpečnostní nastavení pro první testy. Až bude BLTouch spolehlivě fungovat, můžeš rychlost postupně zvýšit například do rozsahu 5–16 mm/s.
 
-Je to bezpečnostní nastavení pro první testy.
+## 7. Připrav tiskárnu pro test ve vzduchu
 
-Až bude BLTouch spolehlivě fungovat, můžeš rychlost postupně zvýšit například do rozsahu:
-
-```text
-5–16 mm/s
-```
-
-Pro první test nám rychlost nic nepřináší. Chceme hlavně dostatek času reagovat.
-
-## 5. Připrav tiskárnu pro test ve vzduchu
-
-Nejdřív musí být správně ověřený homing X a Y podle předchozí kapitoly.
-
-Proveď:
+Nejdřív musí být správně ověřený homing X a Y:
 
 ```text
 G28 X
 G28 Y
 ```
 
-Potom chceme dostat osu Z přibližně **do poloviny její výšky**, aby mezi tryskou a podložkou zůstala velká bezpečnostní vzdálenost.
+Potom dostaň osu Z přibližně do poloviny výšky, aby mezi tryskou a podložkou zůstala velká bezpečnostní vzdálenost.
 
-Pokud Z ještě není zahomované, Klipper běžný absolutní pohyb Z nemusí dovolit. Pro tento bezpečnostní test proto můžeš tiskárnu vypnout a **ručně pootočit Z šroubem**, případně bezpečně mechanicky nastavit výšku tak, aby byla hlava přibližně v polovině osy.
-
-Po opětovném zapnutí zůstává skutečná poloha Z pro Klipper neznámá – a to je v pořádku. Právě ji budeme homovat.
+Pokud Z ještě není zahomované, můžeš tiskárnu vypnout a **ručně pootočit Z šroubem**. Po opětovném zapnutí zůstává skutečná poloha Z pro Klipper neznámá – a to je v pořádku.
 
 > [!CAUTION]
-> Neposouvej násilím zapnutý krokový motor. Pokud potřebuješ mechanicky změnit výšku před prvním homingem, udělej to s vypnutými motory/tiskárnou.
+> Neposouvej násilím zapnutý krokový motor.
 
-## 6. Nejdůležitější test – zastav Z prstem
+## 8. Nejdůležitější test – zastav Z sepnutím sondy
 
-Teď přichází test, který může zachránit podložku.
-
-Měj jednu ruku připravenou u vypínače.
-
-Spusť pouze Z-home:
+Měj ruku připravenou u vypínače a spusť:
 
 ```text
 G28 Z
 ```
 
-BLTouch vysune pin a osa Z začne **velmi pomalu** sjíždět směrem k podložce.
+BLTouch vysune pin a Z začne pomalu sjíždět. Dokud je tryska bezpečně vysoko nad podložkou, **jemně prstem sepni pin BLTouch**.
 
-Ale nenech sondu dojet až k bedu.
+Správně musí Klipper v okamžiku sepnutí homing Z ukončit.
 
-Dokud je tryska stále bezpečně vysoko nad podložkou, **jemně prstem zatlač pin BLTouch nahoru**, jako kdyby se dotkl podložky.
-
-### Správný výsledek
-
-V okamžiku sepnutí BLTouch musí Klipper detekovat sondu a homing Z ukončit.
-
-### Špatný výsledek
-
-Pokud Z pokračuje směrem dolů i po sepnutí sondy:
+Pokud Z pokračuje dolů:
 
 **OKAMŽITĚ TISKÁRNU ZASTAV NEBO VYPNI.**
 
-Nenechávej ji pokračovat až k podložce „jestli se třeba chytne později“.
+Zkontroluj zapojení, `sensor_pin`, konfiguraci sondy a `QUERY_PROBE`.
 
-V takovém případě zkontroluj:
+## 9. Test několikrát zopakuj
 
-- zapojení BLTouch,
-- `sensor_pin`,
-- konfiguraci konkrétní verze sondy,
-- výsledek `QUERY_PROBE`.
-
-> [!NOTE]
-> Prstem testujeme **pin sondy**. Nesnaž se rukou zastavovat osu Z nebo držet celý toolhead.
-
-## 7. Test zopakuj
-
-Jeden úspěšný pokus ještě není důvod pustit trysku k bedu.
-
-Znovu dostaň hlavu do bezpečné výšky a test zopakuj.
-
-Chceme vidět, že:
-
-1. BLTouch spolehlivě vysune pin,
-2. Z začne pomalu sjíždět,
-3. ruční sepnutí pinu pokaždé zastaví Z-home.
+Chceme vidět, že BLTouch pokaždé vysune pin, Z začne pomalu sjíždět a ruční sepnutí pokaždé zastaví Z-home.
 
 Teprve potom pokračuj.
 
-## 8. První skutečný Z-home
-
-Nyní můžeš poprvé nechat BLTouch skutečně dojet k podložce.
-
-Stále měj ruku připravenou u vypínače a sleduj sondu i trysku.
+## 10. První skutečný Z-home
 
 Spusť:
 
@@ -208,47 +195,39 @@ Spusť:
 G28 Z
 ```
 
-Pin BLTouch se musí dotknout podložky **dříve než tryska**.
+Pin BLTouch se musí dotknout podložky **dříve než tryska**. Pokud se tryska nebezpečně přibližuje k bedu a sonda stále nemůže sepnout, test okamžitě zastav a oprav mechanickou výšku sondy.
 
-Pokud se tryska nebezpečně přibližuje k bedu a sonda stále nemůže sepnout, test okamžitě zastav. Pravděpodobně je problém v mechanické výšce sondy nebo jejím držáku.
+## 11. Teprve teď kompletní G28
 
-## 9. Teprve teď kompletní G28
-
-Pokud už máme samostatně ověřeno:
-
-- X sensorless homing,
-- Y sensorless homing,
-- BLTouch,
-- bezpečný Z-home,
-
-můžeme poprvé použít:
+Pokud jsou samostatně ověřeny X, Y a BLTouch/Z:
 
 ```text
 G28
 ```
 
-Tiskárna by nyní měla bezpečně zahomovat všechny tři osy.
+## 12. Z-offset ještě není hotový
 
-## 10. Z-offset ještě není hotový
+Funkční Z-home **neznamená správnou vzdálenost trysky od podložky**. Nekopíruj Z-offset z jiné tiskárny.
 
-To, že Z-home funguje, **neznamená, že je správně nastavená vzdálenost trysky od podložky**.
-
-Nekopíruj Z-offset z jiné tiskárny.
-
-Například hodnota z tiskárny, ze které tento projekt vychází, není použitelná jako univerzální hodnota pro tvoji sondu, držák, hotend a trysku.
-
-Z-offset zkalibruj samostatně podle dalšího návodu.
+Z-offset zkalibruj samostatně podle kapitoly 06 pomocí `PROBE_CALIBRATE`.
 
 ## Co máš mít po této kapitole hotové
 
-- znáš typ/verzi sondy, kterou používáš,
-- pin BLTouch lze vysunout a zasunout,
+- sonda je mechanicky ve správné výšce,
+- znáš a máš změřené X/Y offsety,
+- pin lze vysunout a zasunout,
 - `QUERY_PROBE` reaguje na sepnutí,
 - první test Z-home proběhl vysoko nad podložkou,
-- ruční sepnutí pinu spolehlivě zastaví Z,
-- sonda se při skutečném homingu dotkne podložky dříve než tryska,
+- ruční sepnutí spolehlivě zastaví Z,
+- při skutečném homingu se sonda dotkne podložky dříve než tryska,
 - kompletní `G28` funguje bezpečně.
 
 Další krok:
 
 ➡️ **04 – Kontrola topení a PID tuning**
+
+### Oficiální dokumentace
+
+- [Klipper – BLTouch](https://www.klipper3d.org/BLTouch.html)
+- [Klipper – Probe calibration](https://www.klipper3d.org/Probe_Calibrate.html)
+- [Marlin – XYZ Probe Offset / M851](https://marlinfw.org/docs/gcode/M851.html)
