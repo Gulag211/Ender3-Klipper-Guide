@@ -72,7 +72,60 @@ Obecný princip je:
 > [!NOTE]
 > Do základního `printer.cfg` tohoto projektu KAMP záměrně nedáváme. Základní konfigurace musí fungovat i bez externího projektu.
 
-## 5. Proč nepřepisovat celý printer.cfg
+## 5. Instalace souboru nestačí – Klipper ho musí také načíst
+
+Tohle je důležitý princip celé konfigurace Klipperu.
+
+`printer.cfg` je hlavní vstupní konfigurační soubor. Nemusíš do něj nacpat všechny stovky řádků maker a doplňků, ale musí z něj vést cesta ke všemu, co má Klipper používat.
+
+Samostatný soubor můžeš načíst například:
+
+```ini
+[include macros.cfg]
+[include KAMP_Settings.cfg]
+```
+
+A některé funkce se povolují vlastní sekcí:
+
+```ini
+[exclude_object]
+```
+
+Typický config s doplňky tedy může obsahovat například:
+
+```ini
+[include mainsail.cfg]
+[include macros.cfg]
+[include KAMP_Settings.cfg]
+
+[exclude_object]
+```
+
+> [!IMPORTANT]
+> Řádky musí být **aktivní, tedy bez `#` na začátku**. `#` je komentář:
+>
+> ```ini
+> # [include KAMP_Settings.cfg]
+> ```
+>
+> a Klipper takový řádek vůbec nenačte.
+
+Po instalaci každého doplňku proto vždy zkontroluj dvě věci:
+
+1. že jeho soubory opravdu existují na správném místě,
+2. že jsou potřebné soubory/sekce aktivně zahrnuté do konfigurace.
+
+Stejný princip platí pro `macros.cfg`, ADXL/Input Shaper config nebo jiné vlastní rozdělené `.cfg` soubory.
+
+### Pozor na `[gcode_macro BED_MESH_CALIBRATE]`
+
+Na konkrétní starší nebo vlastní KAMP konfiguraci můžeš narazit i na přepsání standardního příkazu pomocí makra `[gcode_macro BED_MESH_CALIBRATE]`.
+
+**Nepřidávej tento blok automaticky jen proto, že byl v jiném configu.** Záleží na verzi a způsobu instalace KAMP. Použij pouze sekce a include soubory, které vyžaduje právě instalovaná verze projektu.
+
+Po každé změně použij **Firmware Restart**. Pokud include odkazuje na neexistující soubor nebo je konfigurace chybná, Klipper to při načítání oznámí.
+
+## 6. Proč nepřepisovat celý printer.cfg
 
 Na internetu můžeš najít hotový config obsahující například:
 
@@ -89,7 +142,7 @@ Přidej pouze části, kterým rozumíš a které potřebuješ.
 
 Když KAMP později odstraníš, základní konfigurace tiskárny musí zůstat přehledná.
 
-## 6. Základní PRINT_START bez KAMP
+## 7. Základní PRINT_START bez KAMP
 
 V našem základním configu používáme princip:
 
@@ -105,7 +158,7 @@ Nejdřív musí fungovat právě ona.
 
 Teprve potom má smysl nahradit klasické měření adaptivním postupem.
 
-## 7. Adaptivní mesh
+## 8. Adaptivní mesh
 
 Při správné instalaci a nastavení KAMP se oblast meshe přizpůsobí hranicím objektu nebo objektů v aktuálním G-code.
 
@@ -123,7 +176,7 @@ Adaptivní mesh se může soustředit pouze na oblast kolem konkrétního modelu
 
 Konkrétní hranice ale neurčujeme ručně – vznikají z dat aktuálního tisku.
 
-## 8. Bezpečnostní pravidla z Bed Meshe stále platí
+## 9. Bezpečnostní pravidla z Bed Meshe stále platí
 
 KAMP nemění fyziku tiskárny.
 
@@ -137,7 +190,7 @@ Stále musí platit:
 
 Pokud základní `mesh_min`, `mesh_max` nebo probe offsety nejsou správně, KAMP není řešení.
 
-## 9. Purge line
+## 10. Purge line
 
 Před samotným tiskem chceme mít trysku naplněnou materiálem.
 
@@ -147,7 +200,7 @@ KAMP umí vytvořit purge line s ohledem na polohu objektu.
 
 Výhoda je hlavně v tom, že purge může být součástí adaptivní přípravy konkrétního tisku místo pevně zakódované čáry na jednom místě.
 
-## 10. Pozor na dvojitou purge line
+## 11. Pozor na dvojitou purge line
 
 Pokud používáš purge z KAMP, zkontroluj start G-code sliceru.
 
@@ -160,7 +213,7 @@ Výsledkem je jen zbytečný materiál a čas.
 
 Měj jedno jasné místo, které purge řídí.
 
-## 11. KAMP a max_extrude_cross_section
+## 12. KAMP a max_extrude_cross_section
 
 U některých purge maker může Klipper odmítnout extruzi, pokud požadovaný průřez překročí bezpečnostní limit.
 
@@ -177,7 +230,7 @@ Nejdřív zjisti, proč makro požaduje tak velkou extruzi a zda odpovídá konf
 
 Bezpečnostní kontrola Klipperu má důvod.
 
-## 12. Co když KAMP nefunguje
+## 13. Co když KAMP nefunguje
 
 Vrať se k jednoduchému řetězci:
 
@@ -200,7 +253,7 @@ Zkontroluj:
 
 Tím si výrazně zjednodušíš hledání chyby.
 
-## 13. KAMP není povinný
+## 14. KAMP není povinný
 
 Pokud ti nevadí několik sekund nebo minut navíc před tiskem, klasický Bed Mesh je naprosto použitelný.
 
