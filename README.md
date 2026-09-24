@@ -7,6 +7,14 @@ Projekt vychází z reálně provozované a upravené tiskárny. Cílem není na
 > [!WARNING]
 > Konfigurace není univerzální pro každý Ender 3. MCU ID, Z-offset, PID, rotation distance, sensorless homing, Pressure Advance, Input Shaper a další hodnoty musí odpovídat konkrétnímu stroji.
 
+## ⚡ Než začneš: přečti si nejdřív značky v configu
+
+Ještě před prvním nastavováním os si přečti **[00 – Základy printer.cfg a mechanické změny](guides/00-config-basics.md)**.
+
+Hned na začátku tam vysvětlujeme `!`, `^`, `~`, `#` a jejich kombinace. Tyto znaky se neposuzují „pro celou tiskárnu“, ale **pro každý konkrétní pin, motor, endstop nebo sondu zvlášť**. Například `!` u `dir_pin` může obrátit směr jednoho motoru, ale vůbec to neznamená, že ho máš přidat také k ostatním osám.
+
+Stejná kapitola vysvětluje i důležitou mechanickou věc: po výměně Bowdenu za Direct Drive, hotendu, toolheadu nebo jiného hardwaru **znovu fyzicky změř skutečný rozsah X/Y/Z**. Nový hlubší toolhead může například zkrátit využitelný chod Y. Je tam také poznámka k ponechání původního mechanického Y endstopu jako dorazu a k možnosti kontroly orientace Y vozíku pod hotbedem.
+
 ## 🚀 Kde začít
 
 Pokud s Klipperem začínáš, **nezačínej kopírováním celého configu a náhodným zkoušením příkazů**.
@@ -25,7 +33,7 @@ README je hlavně **rozcestník a instalační základ**. Podrobnější vysvět
 
 | Krok | Návod | Co řeší |
 |---|---|---|
-| 01 | [První spuštění](guides/01-first-start.md) | MCU, teploty, endstopy, BLTouch, motory a první bezpečné kontroly |
+| 00 | [Základy configu a mechaniky](guides/00-config-basics.md) | `!`, `^`, `~`, `#`, směry, skutečný rozsah os a změny po přestavbě |\n| 01 | [První spuštění](guides/01-first-start.md) | MCU, teploty, endstopy, BLTouch, motory a první bezpečné kontroly |
 | 02 | [Sensorless homing](guides/02-sensorless-homing.md) | StallGuard, `driver_sgthrs`, bezpečné ladění X/Y |
 | 03 | [BLTouch](guides/03-bltouch.md) | kontrola sondy a bezpečný první Z-home |
 | 04 | [PID tuning](guides/04-pid-tuning.md) | kontrola topení a PID hotendu i bedu |
@@ -50,7 +58,7 @@ Ender3-Klipper-Guide/
 │   ├── printer.cfg
 │   └── macros.cfg
 ├── guides/
-│   ├── 01-first-start.md
+│   ├── 00-config-basics.md\n│   ├── 01-first-start.md
 │   ├── 02-sensorless-homing.md
 │   ├── 03-bltouch.md
 │   ├── 04-pid-tuning.md
