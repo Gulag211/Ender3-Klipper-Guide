@@ -7,6 +7,36 @@ Projekt vychází z reálně provozované a upravené tiskárny. Cílem není na
 > [!WARNING]
 > Konfigurace není univerzální pro každý Ender 3. MCU ID, Z-offset, PID, rotation distance, sensorless homing, Pressure Advance, Input Shaper a další hodnoty musí odpovídat konkrétnímu stroji.
 
+## 📖 NEJDŘÍV README, POTOM CONFIG
+
+> [!IMPORTANT]
+> Tento projekt není jen složka s hotovým `printer.cfg`. Je to **český návod krok za krokem**.
+
+Nejrychlejší cesta k funkční tiskárně paradoxně není začít kopírováním souborů. **Projdi nejdřív toto README** a potom pokračuj jednotlivými kapitolami v `guides/` v doporučeném pořadí:
+
+```text
+README → 00 → 01 → 02 → 03 → ... → 12
+```
+
+Projekt vznikl mimo jiné proto, že velká část dokumentace Klipperu, KAMP a dalších projektů je v angličtině. Začátečník tak snadno začne kopírovat konfiguraci, aniž by přesně věděl, co jednotlivé části dělají, a README začne číst až ve chvíli, kdy něco nefunguje.
+
+**Tady je postup vysvětlený česky. Využij toho. 🙂**
+
+Doporučený postup:
+
+```text
+README → pochopit → upravit pro svou tiskárnu → otestovat
+```
+
+Ne:
+
+```text
+zkopírovat → restartovat → chyba → hledat proč 😁
+```
+
+> [!WARNING]
+> Ani když máš stejný Ender 3 a stejnou SKR Mini E3 V3.0, neznamená to, že můžeš bez kontroly použít všechny hodnoty z tohoto projektu. Mechanické úpravy, motory, extruder, sonda, termistory, rozměry os i kalibrační hodnoty se mohou lišit.
+
 ## ⚡ Než začneš: přečti si nejdřív značky v configu
 
 Ještě před prvním nastavováním os si přečti **[00 – Základy printer.cfg a mechanické změny](guides/00-config-basics.md)**.
